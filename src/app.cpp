@@ -109,7 +109,6 @@ int main(void)
     util::Shader s{"../src/glsl/vertex_shader.glsl","../src/glsl/fragment_shader.glsl"};
 
 
-
     /**
      * The loop for rendering
      */
@@ -120,9 +119,15 @@ int main(void)
         glClearColor(0.5f,0.5f,0.5f,0.1f);
         glClear(GL_COLOR_BUFFER_BIT);
 
+        float value {(float)glfwGetTime()};
+        value = glm::sin(value);    
+        glm::mat4 trans {glm::mat4(1.0f)};
+        trans = glm::scale(trans, glm::vec3(value, value, 1));
+
         glBindVertexArray(vao);
         s.use();
         s.setInt("myTexture", 0);
+        glUniformMatrix4fv(glGetUniformLocation(s.getID(), "trans"), 1, GL_FALSE, glm::value_ptr(trans));
         glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
 
         glfwSwapBuffers(window);

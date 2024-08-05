@@ -117,6 +117,12 @@ void util::Shader::setFloat(const std::string &name, float value)
 } 
 
 
+GLuint util::Shader::getID()
+{
+    return m_id;
+}
+
+
 util::Shader::~Shader()
 {
     glDeleteProgram(m_id);

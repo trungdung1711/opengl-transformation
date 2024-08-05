@@ -31,6 +31,9 @@ namespace util
         void setInt(const std::string &name, int value);
 
 
+        GLuint getID();
+
+
         ~Shader();
 
     };
