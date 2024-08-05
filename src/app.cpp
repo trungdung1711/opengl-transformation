@@ -50,10 +50,10 @@ int main(void)
 
     float vertices[]
     {
-        0.5f , 0.5f , 0.0f , 1.0f , 0.0f, 0.0f, 
-        0.5f ,-0.5f , 0.0f , 0.0f , 1.0f, 0.0f, 
-       -0.5f ,-0.5f , 0.0f , 0.0f , 0.0f, 1.0f, 
-       -0.5f , 0.5f , 0.0f , 0.0f , 1.0f, 1.0f
+        0.5f , 0.5f , 0.0f , 1.0f , 0.0f, 0.0f, 1.0f, 1.0f, 
+        0.5f ,-0.5f , 0.0f , 0.0f , 1.0f, 0.0f, 1.0f, 0.0f, 
+       -0.5f ,-0.5f , 0.0f , 0.0f , 0.0f, 1.0f, 0.0f, 0.0f, 
+       -0.5f , 0.5f , 0.0f , 0.0f , 1.0f, 1.0f, 0.0f, 1.0f 
     };
 
 
@@ -78,14 +78,37 @@ int main(void)
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ebo);
     glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), (void*)indices, GL_STATIC_DRAW);
 
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)0);
-    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)(sizeof(float) * 3));
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)0);
+    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(sizeof(float) * 3));
+    glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(sizeof(float) * 6));
     glEnableVertexAttribArray(0);
     glEnableVertexAttribArray(1);
+    glEnableVertexAttribArray(2);
 
     glBindVertexArray(0);
 
+
+    GLuint texture;
+    glGenTextures(1, &texture);
+    glActiveTexture(GL_TEXTURE0);
+    glBindTexture(GL_TEXTURE_2D, texture);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);	
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+    int w, h, numberColourChannels;
+    unsigned char* data{stbi_load("../textures/t.png", &w, &h, &numberColourChannels, 0)};
+    std:: cout << w << ' ' << h << ' ' << numberColourChannels << '\n';
+    if (data)
+    {
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, w, h, 0, GL_RGBA, GL_UNSIGNED_BYTE, (void*)data);
+        glGenerateMipmap(GL_TEXTURE_2D);
+    }
+
     util::Shader s{"../src/glsl/vertex_shader.glsl","../src/glsl/fragment_shader.glsl"};
+
+
 
     /**
      * The loop for rendering
@@ -99,6 +122,7 @@ int main(void)
 
         glBindVertexArray(vao);
         s.use();
+        s.setInt("myTexture", 0);
         glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
 
         glfwSwapBuffers(window);
@@ -108,6 +132,10 @@ int main(void)
     glDeleteBuffers(1, &vbo);
     glDeleteBuffers(1, &ebo);
     glDeleteVertexArrays(1, &vao);
+
+    glDeleteTextures(1, &texture);
+
+    stbi_image_free(&data);
 
     glfwTerminate();
     return 0;
