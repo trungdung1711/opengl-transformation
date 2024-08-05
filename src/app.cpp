@@ -48,16 +48,44 @@ int main(void)
     std::cout <<"Number of texture uints: " << n << '\n';
     stbi_set_flip_vertically_on_load(true); 
 
+    float vertices[]
+    {
+        0.5f , 0.5f , 0.0f , 1.0f , 0.0f, 0.0f, 
+        0.5f ,-0.5f , 0.0f , 0.0f , 1.0f, 0.0f, 
+       -0.5f ,-0.5f , 0.0f , 0.0f , 0.0f, 1.0f, 
+       -0.5f , 0.5f , 0.0f , 0.0f , 1.0f, 1.0f
+    };
 
-    /**
-     * Use of glm
-     */
-    glm::vec4 vec(1.0f,0.0f,0.0f,1.0f);
-    glm::mat4 trans(glm::mat4(1.0f));
-    /*Build a translation vector to move (1,1,0)*/
-    trans = glm::translate(trans,glm::vec3(1.0f,1.0f,0.0f));
-    vec = trans * vec;
-    std::cout << vec.x << " " << vec.y << " " << vec.z << '\n';
+
+    unsigned int indices[]
+    {
+        0, 1, 2,
+        0, 2, 3
+    };
+
+
+    GLuint vao;
+    glGenVertexArrays(1, &vao);
+    glBindVertexArray(vao);
+
+    GLuint vbo;
+    glGenBuffers(1, &vbo);
+    glBindBuffer(GL_ARRAY_BUFFER, vbo);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), (void*)vertices, GL_STATIC_DRAW);
+
+    GLuint ebo;
+    glGenBuffers(1, &ebo);
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ebo);
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), (void*)indices, GL_STATIC_DRAW);
+
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)0);
+    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)(sizeof(float) * 3));
+    glEnableVertexAttribArray(0);
+    glEnableVertexAttribArray(1);
+
+    glBindVertexArray(0);
+
+    util::Shader s{"../src/glsl/vertex_shader.glsl","../src/glsl/fragment_shader.glsl"};
 
     /**
      * The loop for rendering
@@ -68,9 +96,19 @@ int main(void)
         /* Render here */
         glClearColor(0.5f,0.5f,0.5f,0.1f);
         glClear(GL_COLOR_BUFFER_BIT);
+
+        glBindVertexArray(vao);
+        s.use();
+        glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
+
         glfwSwapBuffers(window);
         glfwPollEvents();
     }
+
+    glDeleteBuffers(1, &vbo);
+    glDeleteBuffers(1, &ebo);
+    glDeleteVertexArrays(1, &vao);
+
     glfwTerminate();
     return 0;
 }
